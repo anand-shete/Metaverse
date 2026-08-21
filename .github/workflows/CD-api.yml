@@ -79,15 +79,17 @@ jobs:
           ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
           AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_PROFILE: metaverse-ecr-user
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          envs: ECR_REGISTRY,IMAGE_TAG,AWS_REGION
+          # passes variables and export inside EC2 server
+          envs: ECR_REGISTRY,IMAGE_TAG,AWS_REGION,AWS_PROFILE
           script: |
             set -euo pipefail
             cd "/home/${{ secrets.EC2_USER }}/metaverse"
             chmod +x deploy.sh
-            export ECR_REGISTRY IMAGE_TAG AWS_REGION
+            export ECR_REGISTRY IMAGE_TAG AWS_REGION AWS_PROFILE
             ./deploy.sh
