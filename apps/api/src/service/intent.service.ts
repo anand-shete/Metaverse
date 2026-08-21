@@ -1,6 +1,5 @@
-import { GroqModel } from "@metaverse/shared/enum";
 import { IUserIntent } from "@metaverse/shared/interface";
-import { groq } from "@config/index.config";
+import { env, groq } from "@config/index.config";
 
 export const checkUserIntent = async (message: string): Promise<IUserIntent> => {
   const prompt = `
@@ -23,7 +22,7 @@ export const checkUserIntent = async (message: string): Promise<IUserIntent> => 
     }`;
 
   const response = await groq.chat.completions.create({
-    model: GroqModel.QUICK,
+    model: env.GROQ_QUICK_MODEL,
     messages: [
       { role: "system", content: prompt },
       { role: "user", content: message },

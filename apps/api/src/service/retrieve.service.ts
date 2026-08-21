@@ -1,5 +1,5 @@
+import { env } from "@config/env.config";
 import { groq } from "@config/groq.config";
-import { GroqModel } from "@metaverse/shared/enum";
 import { IFilter, IFilterResponse, IMetabotServiceResponse } from "@metaverse/shared/interface";
 
 export class Retrieve {
@@ -47,7 +47,7 @@ export class Retrieve {
 
     const completion = await groq.chat.completions.create({
       messages: [{ role: "user", content: triggerRetrievalPrompt }],
-      model: GroqModel.QUICK,
+      model: env.GROQ_QUICK_MODEL,
       response_format: { type: "json_object" },
       temperature: 0,
       top_p: 1,
@@ -112,7 +112,7 @@ export class Retrieve {
         { role: "system", content: "You are a helpful study assistant." },
         { role: "user", content: finalResponsePrompt },
       ],
-      model: GroqModel.QUICK,
+      model: env.GROQ_QUICK_MODEL,
     });
 
     const content = completion.choices[0]?.message?.content;

@@ -12,6 +12,8 @@ const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string(),
   AWS_SECRET_ACCESS_KEY: z.string(),
   AWS_BUCKET_NAME: z.string(),
+  GROQ_QUICK_MODEL: z.string(),
+  GROQ_THINK_MODEL: z.string(),
 });
 
 const validate = envSchema.safeParse(process.env);

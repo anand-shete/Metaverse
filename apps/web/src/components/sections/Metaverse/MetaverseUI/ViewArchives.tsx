@@ -17,6 +17,8 @@ const ViewArchives = ({ isOpen, onClose }: Props) => {
     const getArchiveNotes = async () => {
       try {
         const res = await api.get("/user/archives");
+        console.log("data:", res.data);
+        console.log("array:", Array.from(res.data));
         setArchives(res.data);
       } catch {
         toast.error("Error fetching Metaverse archives");
@@ -60,17 +62,23 @@ const ViewArchives = ({ isOpen, onClose }: Props) => {
         </div>
 
         <div className="h-80 space-y-4 overflow-y-scroll px-5 py-4">
-          {archives.map((notes, idx) => (
-            <div
-              key={idx}
-              className="flex max-h-48 justify-between space-y-2 overflow-y-auto rounded-md bg-gray-50 p-3 text-sm"
-            >
-              <span>{notes.Key.split("notes/").pop()}</span>
-              <span className="text-black/80">
-                {(notes.Size / (1024 * 1024)).toFixed(2)} MB
-              </span>
-            </div>
-          ))}
+          {Array.from(archives).length === 0 ? (
+            <p className="pt-4 text-center text-sm">
+              Upload notes to Metaverse archives to see them here.
+            </p>
+          ) : (
+            archives.map((notes, idx) => (
+              <div
+                key={idx}
+                className="flex max-h-48 justify-between space-y-2 overflow-y-auto rounded-md bg-gray-50 p-3 text-sm"
+              >
+                <span>{notes.Key.split("notes/").pop()}</span>
+                <span className="text-black/80">
+                  {(notes.Size / (1024 * 1024)).toFixed(2)} MB
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

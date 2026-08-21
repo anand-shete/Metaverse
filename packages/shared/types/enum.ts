@@ -10,11 +10,6 @@ export enum ChatUserType {
   METABOT = "metabot",
 }
 
-export enum GroqModel {
-  QUICK = "llama-3.1-8b-instant",
-  THINK = "llama-3.3-70b-versatile",
-}
-
 export const DocType = ["pdf", "docx", "pptx", "txt"] as const;
 
 export const MAX_FILE_SIZE = 20 * 1024 * 1024;
