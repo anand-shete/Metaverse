@@ -17,7 +17,7 @@ const envSchema = z.object({
 const validate = envSchema.safeParse(process.env);
 
 if (!validate.success) {
-  console.log("Error parsing env variables", JSON.parse(validate.error.message));
+  console.error("Error parsing env variables", JSON.parse(validate.error.message));
   process.exit(1);
 }
 

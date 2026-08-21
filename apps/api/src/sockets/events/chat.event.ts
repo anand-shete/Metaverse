@@ -36,7 +36,7 @@ export const registerChatEvents = (ctx: SocketContent) => {
 
     const metabotResponse = await triggerMetabotService(message);
     if (!metabotResponse.success) {
-      console.log(metabotResponse.message);
+      fastify.log.error(metabotResponse.message);
       fastify.io.emit("chat:message", {
         username: "Metabot",
         message:

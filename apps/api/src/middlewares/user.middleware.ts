@@ -15,7 +15,7 @@ export const userHook = async (req: FastifyRequest, res: FastifyReply) => {
 
     req.user = user;
   } catch (error) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Error getting user data" });
   }
 };

@@ -6,7 +6,7 @@ export const healthCheck = async (req: FastifyRequest, res: FastifyReply) => {
   return res.status(200).send({ message: "🎉 Metaverse API Healthcheck passed 🚀" });
 };
 
-export const dbHealthCheck = async (_: FastifyRequest, res: FastifyReply) => {
+export const dbHealthCheck = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const mongoOk = mongoose.connection.readyState === 1;
     if (!mongoOk) {
@@ -20,7 +20,7 @@ export const dbHealthCheck = async (_: FastifyRequest, res: FastifyReply) => {
 
     return res.status(200).send({ message: "MongoDB database server up and healthy" });
   } catch (error) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "MongoDB database ping failed" });
   }
 };
@@ -39,7 +39,7 @@ export const authCheck = async (req: FastifyRequest, res: FastifyReply) => {
       payload: { username, avatar, id },
     });
   } catch (error) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Error getting user data" });
   }
 };

@@ -36,7 +36,7 @@ export const signupUser = async (req: FastifyRequest, res: FastifyReply) => {
 
     return res.status(201).send({ message: "Account created successfully", userId: user._id });
   } catch (error: unknown) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Failed to Create Account" });
   }
 };
@@ -59,7 +59,7 @@ export const loginUser = async (req: FastifyRequest, res: FastifyReply) => {
     await setToken(res, accessToken);
     return res.status(200).send({ token: accessToken, message: "User Login success" });
   } catch (error: unknown) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Failed to Sign In User" });
   }
 };
@@ -83,7 +83,7 @@ export const updateUserAvatar = async (req: FastifyRequest, res: FastifyReply) =
 
     return res.status(200).send({ message: "Account created successfully" });
   } catch (error) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Error updating avatar" });
   }
 };
@@ -99,7 +99,7 @@ export const getAllArchives = async (req: FastifyRequest, res: FastifyReply) => 
     const result = await s3client.send(command);
     return res.status(200).send(result.Contents);
   } catch (error) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Error fetching archives" });
   }
 };
@@ -125,7 +125,7 @@ export const generatePutObjectSignedUrl = async (req: FastifyRequest, res: Fasti
     const signedUrl = await getSignedUrl(s3client, command);
     return res.status(200).send({ message: "Generated upload URL", signedUrl });
   } catch (error) {
-    console.log(error);
+    req.log.error(error);
     return res.status(500).send({ message: "Error generating upload URL" });
   }
 };

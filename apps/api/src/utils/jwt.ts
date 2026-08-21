@@ -18,7 +18,7 @@ export const verifyToken = async (token: string): Promise<CustomJwtPayload | und
   try {
     return jwt.verify(token, env.JWT_SECRET) as CustomJwtPayload;
   } catch (error) {
-    console.log("Error verifying token", error);
+    console.error("Error verifying token", error);
     return;
   }
 };

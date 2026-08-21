@@ -1,16 +1,17 @@
 import mongoose from "mongoose";
 import { env } from "./env.config";
+import { FastifyInstance } from "fastify";
 
-export const connectDB = async () => {
+export const connectDB = async (fastify: FastifyInstance) => {
   try {
     await mongoose.connect(env.MONGO_URI, {
       appName: "metaverse",
       minPoolSize: 2,
       maxPoolSize: 15,
     });
-    console.log("MongoDB connected");
+    fastify.log.info("MongoDB connected");
   } catch (error) {
-    console.log("MongoDB connection error", error);
+    fastify.log.error(`MongoDB connection error ${error}`);
     process.exit(1);
   }
 };

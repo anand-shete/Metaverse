@@ -152,12 +152,12 @@ Typed `SocketEvents` enum can come later when media/signaling is redesigned in P
 
 Workflows: [`.github/workflows/CI-api.yml`](.github/workflows/CI-api.yml), [`.github/workflows/CI-web.yml`](.github/workflows/CI-web.yml), with existing CD for API deploy.
 
-| Step      | Web            | API          |
-| --------- | -------------- | ------------ |
-| Install   | `pnpm install` | same         |
-| Lint      | ESLint         | ESLint       |
-| Typecheck | `tsc`          | `tsc`        |
-| Build     | `vite build`   | `tsc`        |
+| Step      | Web            | API    |
+| --------- | -------------- | ------ |
+| Install   | `pnpm install` | same   |
+| Lint      | ESLint         | ESLint |
+| Typecheck | `tsc`          | `tsc`  |
+| Build     | `vite build`   | `tsc`  |
 
 ### 1.3 Local Docker Compose — Skipped
 
@@ -171,10 +171,10 @@ Skipped. Rely on existing production compose / CD pipeline (`apps/api/compose.ym
 
 Reusable Fastify `preHandler` (`userHook` in [`apps/api/src/middlewares/user.middleware.ts`](apps/api/src/middlewares/user.middleware.ts)):
 
-| Route                       | Auth                                      |
-| --------------------------- | ----------------------------------------- |
-| `POST /user/upload-url`     | Required (`userHook`)                     |
-| `GET /user/archives`        | Required (`userHook`)                     |
+| Route                       | Auth                                                                      |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `POST /user/upload-url`     | Required (`userHook`)                                                     |
+| `GET /user/archives`        | Required (`userHook`)                                                     |
 | `PATCH /user/update-avatar` | **Open on purpose** — signup avatar pick runs before login/session exists |
 
 JWT already signs with `expiresIn: "24h"` in [`apps/api/src/utils/jwt.ts`](apps/api/src/utils/jwt.ts).
@@ -184,11 +184,11 @@ JWT already signs with `expiresIn: "24h"` in [`apps/api/src/utils/jwt.ts`](apps/
 - Login JSON body may still include `token` — signup/avatar client flow needs it; httpOnly cookie remains the primary session for metaverse/socket
 - No `@fastify/rate-limit` for now (portfolio scope cut)
 
-### 2.2 Health / Observability (Slim)
+### 2.2 Health / Observability (Done)
 
-Full Pino migration / replacing all `console.log` / request-ID / socket debug logging is **skipped**.
+Full Pino migration / replacing all `console.log` / request-ID / socket debug logging is **done**.
 
-Keep Fastify logger as-is and ship Mongo connectivity check:
+Replaced Fistify pino native logger and ship Mongo connectivity check:
 
 - `GET /api/v1/health` — process liveness
 - `GET /api/v1/health/db` — MongoDB `readyState` + `admin().ping()`
