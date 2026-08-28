@@ -1,0 +1,55 @@
+# Local development stack (MongoDB + API).
+# Production deploy stack: apps/api/compose.yml
+
+name: metaverse-api-local
+
+services:
+  mongo:
+    image: mongo:8.0.4
+    container_name: metaverse-mongo
+    restart: unless-stopped
+    ports:
+      - "${MONGO_HOST_PORT:-27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: metaverse-api-local
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - apps/api/.env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      MONGO_URI: mongodb://mongo:27017/metaverse
+      FRONTEND_URI1: http://localhost:5173
+      FRONTEND_URI2: http://127.0.0.1:5173
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/v1/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  mongo-data:

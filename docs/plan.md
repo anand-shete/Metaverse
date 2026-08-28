@@ -1,35 +1,39 @@
 ---
+
 name: Portfolio Architecture Overhaul
 overview: Transform 2D-Metaverse from a functional demo into a portfolio-grade system by replacing mesh WebRTC with an SFU, migrating the game engine to Phaser 3 with a Tiled JSON map, hardening auth/security, and adding engineering discipline (monorepo, CI, docs) — while keeping the app intentionally simple as a single shared map.
 todos:
-  - id: monorepo-shared
-    content: Set up pnpm workspace + Turborepo with packages/shared for API contracts and Zod schemas
-    status: completed
-  - id: ci
-    content: Add CI workflows (lint, typecheck, build) for api and web
-    status: completed
-  - id: local-docker
-    content: Add local Docker Compose stack (MongoDB + API) and docs/local-dev.md
-    status: completed
-  - id: auth-security
-    content: Add Fastify auth middleware for archives/upload-url, JWT expiry, MongoDB health check
-    status: completed
-  - id: mediasoup-sfu
-    content: Replace PeerJS with mediasoup SFU server + client, new media:* socket signaling protocol (global A/V for all connected users)
-    status: pending
-  - id: phaser-migration
-    content: Migrate Pixi.js to Phaser 3 with Tiled JSON tilemap, player sprites, remote interpolation, zones, and EventBus bridge
-    status: pending
-  - id: frontend-modernize.git
-    content: Adopt React Query for server state, add route guards, clean up auth flow and lifecycle bugs
-    status: pending
-  - id: docs-portfolio
-    content: Replace README placeholders with architecture diagrams, add ADRs, docs/, LICENSE, and demo GIFs
-    status: pending
+
+- id: monorepo-shared
+content: Set up pnpm workspace + Turborepo with packages/shared for API contracts and Zod schemas
+status: completed
+- id: ci
+content: Add CI workflows (lint, typecheck, build) for api and web
+status: completed
+- id: auth-security
+content: Add Fastify auth middleware for archives/upload-url, JWT expiry, MongoDB health check
+status: completed
+- id: mediasoup-sfu
+content: Replace PeerJS with mediasoup SFU server + client, new media:* socket signaling protocol (global A/V for all connected users)
+status: pending
+- id: phaser-migration
+content: Migrate Pixi.js to Phaser 3 with Tiled JSON tilemap, player sprites, remote interpolation, zones, and EventBus bridge
+status: pending
+- id: frontend-modernize.git
+content: Adopt React Query for server state, add route guards, clean up auth flow and lifecycle bugs
+status: pending
+- id: docs-portfolio
+content: Replace README placeholders with architecture diagrams, add ADRs, docs/, LICENSE, and demo GIFs
+status: pending
 isProject: false
+
 ---
 
+
+
 # Portfolio Architecture Transformation Plan
+
+
 
 ## Design Principles (Scope Constraints)
 
@@ -41,6 +45,8 @@ This overhaul intentionally keeps the app **simple**:
 - **Metabot RAG unchanged** — the S3 → Lambda → MongoDB ingestion pipeline already runs in AWS; no in-repo RAG rework
 
 ---
+
+
 
 ## Current State (Baseline)
 
@@ -75,9 +81,11 @@ flowchart TB
   end
 ```
 
+
+
 **Key weaknesses to address:**
 
-- Mesh P2P ([`frontend/src/media/MediaManager.ts`](frontend/src/media/MediaManager.ts)) scales O(n²) — every user calls every other user
+- Mesh P2P (`[frontend/src/media/MediaManager.ts](frontend/src/media/MediaManager.ts)`) scales O(n²) — every user calls every other user
 - README has placeholder diagrams
 - Map is a single LibreSprite PNG with hand-coded collision arrays — should be a proper Tiled JSON tilemap
 
@@ -89,6 +97,8 @@ flowchart TB
 - Login response may include JWT in JSON body — needed by the signup/avatar client flow alongside the httpOnly cookie
 
 ---
+
+
 
 ## Target Architecture
 
@@ -123,7 +133,11 @@ flowchart TB
   end
 ```
 
+
+
 ---
+
+
 
 ## Phase 1: Engineering Foundation (Done)
 
@@ -153,7 +167,8 @@ Typed `SocketEvents` enum can come later when media/signaling is redesigned in P
 
 ### 1.2 CI Pipeline (Alongside CD)
 
-Workflows: [`.github/workflows/CI-api.yml`](.github/workflows/CI-api.yml), [`.github/workflows/CI-web.yml`](.github/workflows/CI-web.yml), with existing CD for API deploy.
+Workflows: `[.github/workflows/CI-api.yml](.github/workflows/CI-api.yml)`, `[.github/workflows/CI-web.yml](.github/workflows/CI-web.yml)`, with existing CD for API deploy.
+
 
 | Step      | Web            | API    |
 | --------- | -------------- | ------ |
@@ -161,6 +176,9 @@ Workflows: [`.github/workflows/CI-api.yml`](.github/workflows/CI-api.yml), [`.gi
 | Lint      | ESLint         | ESLint |
 | Typecheck | `tsc`          | `tsc`  |
 | Build     | `vite build`   | `tsc`  |
+
+
+
 
 ### 1.3 Local Docker Compose (Done)
 
@@ -177,11 +195,16 @@ Root [`compose.yml`](../compose.yml) starts MongoDB 7 + the API image from [`app
 
 ---
 
+
+
 ## Phase 2: Backend Hardening (Done)
+
+
 
 ### 2.1 Auth Middleware + Security
 
-Reusable Fastify `preHandler` (`userHook` in [`apps/api/src/middlewares/user.middleware.ts`](apps/api/src/middlewares/user.middleware.ts)):
+Reusable Fastify `preHandler` (`userHook` in `[apps/api/src/middlewares/user.middleware.ts](apps/api/src/middlewares/user.middleware.ts)`):
+
 
 | Route                       | Auth                                                                      |
 | --------------------------- | ------------------------------------------------------------------------- |
@@ -189,12 +212,15 @@ Reusable Fastify `preHandler` (`userHook` in [`apps/api/src/middlewares/user.mid
 | `GET /user/archives`        | Required (`userHook`)                                                     |
 | `PATCH /user/update-avatar` | **Open on purpose** — signup avatar pick runs before login/session exists |
 
-JWT already signs with `expiresIn: "24h"` in [`apps/api/src/utils/jwt.ts`](apps/api/src/utils/jwt.ts).
+
+JWT already signs with `expiresIn: "24h"` in `[apps/api/src/utils/jwt.ts](apps/api/src/utils/jwt.ts)`.
 
 **Intentionally not changing:**
 
 - Login JSON body may still include `token` — signup/avatar client flow needs it; httpOnly cookie remains the primary session for metaverse/socket
 - No `@fastify/rate-limit` for now (portfolio scope cut)
+
+
 
 ### 2.2 Health / Observability (Done)
 
@@ -207,18 +233,22 @@ Replaced Fistify pino native logger and ship Mongo connectivity check:
 
 ---
 
+
+
 ## Phase 3: SFU Media Architecture (Replace PeerJS)
 
 **Decision: Use [mediasoup](https://mediasoup.org/)** (self-hosted SFU on your EC2) rather than LiveKit Cloud. mediasoup demonstrates deeper WebRTC knowledge — routing, transports, producers/consumers — which is exactly what portfolio reviewers in real-time roles want to see.
 
 ### 3.1 Why Replace PeerJS
 
-Current flow in [`MediaManager.ts`](frontend/src/media/MediaManager.ts):
+Current flow in `[MediaManager.ts](frontend/src/media/MediaManager.ts)`:
 
 - `new Peer({ secure: true })` → PeerJS public cloud broker
 - Full mesh: N users = N×(N-1) WebRTC connections
 - No simulcast/SVC — bandwidth waste
 - Relies on third-party PeerJS cloud for signaling
+
+
 
 ### 3.2 New Media Architecture (Global A/V)
 
@@ -240,13 +270,15 @@ sequenceDiagram
   Others->>SFU: consume producer
 ```
 
+
+
 **New backend service:** `apps/backend/src/media/` (or separate `apps/sfu/` process)
 
 - mediasoup Worker pool (1 worker per CPU core)
 - Single Router for the global map (no per-space or per-zone routers)
 - Signaling over existing Socket.IO (replace `peer:*` events with `media:*`)
 
-**New frontend:** Replace [`frontend/src/media/`](frontend/src/media/) with mediasoup-client
+**New frontend:** Replace `[frontend/src/media/](frontend/src/media/)` with mediasoup-client
 
 - `MediaManager` → `SFUManager` using `Device`, `Transport`, `Producer`, `Consumer`
 - Remove `peerjs` dependency entirely
@@ -256,13 +288,15 @@ sequenceDiagram
 
 ---
 
+
+
 ## Phase 4: Phaser 3 Migration + Tiled JSON Map
 
 **Decision: Migrate to Phaser 3** with a **Tiled JSON tilemap** as the primary map asset. This replaces both the Pixi.js engine and the current LibreSprite PNG + hand-coded collision approach.
 
 ### 4.1 Tiled Map Pipeline (Primary Map Asset)
 
-**Current:** Single PNG map image + manual collision grid in [`collision.ts`](frontend/src/components/sections/Metaverse/engine/data/collision.ts) + zone definitions in [`zones.ts`](frontend/src/components/sections/Metaverse/engine/data/zones.ts).
+**Current:** Single PNG map image + manual collision grid in `[collision.ts](frontend/src/components/sections/Metaverse/engine/data/collision.ts)` + zone definitions in `[zones.ts](frontend/src/components/sections/Metaverse/engine/data/zones.ts)`.
 
 **Target:** Tiled editor → JSON export consumed by Phaser:
 
@@ -274,12 +308,15 @@ frontend/src/assets/map/
 ```
 
 **Tiled layer conventions:**
-| Layer name | Purpose |
-|------------|---------|
-| `ground` | Base walkable tiles (render only) |
-| `walls` | Collision layer (`collides: true` on tiles) |
-| `decor` | Non-colliding decoration above ground |
-| `zones` | Object layer for interaction triggers (upload, archives, external links) |
+
+
+| Layer name | Purpose                                                                  |
+| ---------- | ------------------------------------------------------------------------ |
+| `ground`   | Base walkable tiles (render only)                                        |
+| `walls`    | Collision layer (`collides: true` on tiles)                              |
+| `decor`    | Non-colliding decoration above ground                                    |
+| `zones`    | Object layer for interaction triggers (upload, archives, external links) |
+
 
 Phaser loads via:
 
@@ -288,22 +325,24 @@ this.load.tilemapTiledJSON("campus", "assets/map/campus.json");
 this.load.image("tileset", "assets/map/tileset.png");
 ```
 
-Collision handled by Phaser's built-in tilemap collision (replaces [`collision.ts`](frontend/src/components/sections/Metaverse/engine/data/collision.ts)). Zone interactions read from Tiled object layer properties (replaces much of [`zones.ts`](frontend/src/components/sections/Metaverse/engine/data/zones.ts)).
+Collision handled by Phaser's built-in tilemap collision (replaces `[collision.ts](frontend/src/components/sections/Metaverse/engine/data/collision.ts)`). Zone interactions read from Tiled object layer properties (replaces much of `[zones.ts](frontend/src/components/sections/Metaverse/engine/data/zones.ts)`).
 
 ### 4.2 Migration Strategy (Incremental, Not Big-Bang)
 
 Map current Pixi classes to Phaser scenes/systems:
 
+
 | Current (Pixi)                                                                                   | Target (Phaser)                             |
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| [`Canvas.ts`](frontend/src/components/sections/Metaverse/engine/Canvas.ts)                       | `MetaverseScene` extends `Phaser.Scene`     |
-| [`SpriteManager.ts`](frontend/src/components/sections/Metaverse/engine/SpriteManager.ts)         | Tiled tilemap layers + camera follow        |
-| [`Player.ts`](frontend/src/components/sections/Metaverse/engine/Player.ts)                       | `LocalPlayer` sprite + Arcade physics body  |
-| [`RemotePlayers.ts`](frontend/src/components/sections/Metaverse/engine/RemotePlayers.ts)         | `RemotePlayerManager` with interpolation    |
-| [`EventHandler.ts`](frontend/src/components/sections/Metaverse/engine/EventHandler.ts)           | Phaser input plugin                         |
-| [`InteractionSystem.ts`](frontend/src/components/sections/Metaverse/engine/InteractionSystem.ts) | Tiled object layer overlap detection        |
-| [`collision.ts`](frontend/src/components/sections/Metaverse/engine/data/collision.ts)            | **Removed** — Phaser tilemap collision      |
-| [`zones.ts`](frontend/src/components/sections/Metaverse/engine/data/zones.ts)                    | **Removed** — Tiled object layer properties |
+| `[Canvas.ts](frontend/src/components/sections/Metaverse/engine/Canvas.ts)`                       | `MetaverseScene` extends `Phaser.Scene`     |
+| `[SpriteManager.ts](frontend/src/components/sections/Metaverse/engine/SpriteManager.ts)`         | Tiled tilemap layers + camera follow        |
+| `[Player.ts](frontend/src/components/sections/Metaverse/engine/Player.ts)`                       | `LocalPlayer` sprite + Arcade physics body  |
+| `[RemotePlayers.ts](frontend/src/components/sections/Metaverse/engine/RemotePlayers.ts)`         | `RemotePlayerManager` with interpolation    |
+| `[EventHandler.ts](frontend/src/components/sections/Metaverse/engine/EventHandler.ts)`           | Phaser input plugin                         |
+| `[InteractionSystem.ts](frontend/src/components/sections/Metaverse/engine/InteractionSystem.ts)` | Tiled object layer overlap detection        |
+| `[collision.ts](frontend/src/components/sections/Metaverse/engine/data/collision.ts)`            | **Removed** — Phaser tilemap collision      |
+| `[zones.ts](frontend/src/components/sections/Metaverse/engine/data/zones.ts)`                    | **Removed** — Tiled object layer properties |
+
 
 **Player sprites:** Keep LibreSprite character sprite sheets for avatars; only the **map** moves from PNG to Tiled JSON.
 
@@ -324,10 +363,12 @@ useEffect(() => {
 }, []);
 ```
 
-Bridge Phaser ↔ React via a typed **EventBus** (replace `window.CustomEvent` hack in [`MetaverseUILayer.tsx`](frontend/src/components/sections/Metaverse/MetaverseUI/MetaverseUILayer.tsx)):
+Bridge Phaser ↔ React via a typed **EventBus** (replace `window.CustomEvent` hack in `[MetaverseUILayer.tsx](frontend/src/components/sections/Metaverse/MetaverseUI/MetaverseUILayer.tsx)`):
 
 - `EventBus.emit('zone:upload', payload)` → React opens `UploadFiles` modal
 - Cleaner than DOM events, testable, typed via shared package
+
+
 
 ### 4.4 Game Feel Improvements (While Migrating)
 
@@ -337,7 +378,11 @@ Bridge Phaser ↔ React via a typed **EventBus** (replace `window.CustomEvent` h
 
 ---
 
+
+
 ## Phase 5: Frontend Architecture Modernization
+
+
 
 ### 5.1 React Query for Server State
 
@@ -348,14 +393,19 @@ You already have `@tanstack/react-query` installed but unused. Migrate:
 - Upload presigned URL → `useMutation`
 - Fix login flow: currently doesn't update `UserContext` after login
 
+
+
 ### 5.2 Route Guards
 
 Add a `ProtectedRoute` wrapper:
 
 - `/metaverse` requires authenticated user (redirect to `/login`)
-- Eliminates duplicate `/auth` calls in [`Layout.tsx`](frontend/src/Layout.tsx) and [`Metaverse.tsx`](frontend/src/pages/Metaverse.tsx)
+- Eliminates duplicate `/auth` calls in `[Layout.tsx](frontend/src/Layout.tsx)` and `[Metaverse.tsx](frontend/src/pages/Metaverse.tsx)`
+
+
 
 ### 5.3 State Architecture Cleanup
+
 
 | Concern     | Owner                                                        |
 | ----------- | ------------------------------------------------------------ |
@@ -365,9 +415,14 @@ Add a `ProtectedRoute` wrapper:
 | Chat        | `ChatManager` class (keep — works well)                      |
 | UI modals   | React local state                                            |
 
+
 ---
 
+
+
 ## Phase 6: Documentation + Portfolio Presentation
+
+
 
 ### 6.1 Replace README Placeholders
 
@@ -377,7 +432,10 @@ Fill `[Diagram 1]`, `[Diagram 2]`, `[Diagram 3]` with Mermaid diagrams covering:
 2. Real-time multiplayer flow (global player broadcast + SFU signaling)
 3. Metabot RAG flow (existing AWS pipeline: S3 upload → Lambda → MongoDB → Groq retrieval)
 
+
+
 ### 6.2 Add Supporting Docs
+
 
 | Doc                     | Purpose                                  |
 | ----------------------- | ---------------------------------------- |
@@ -387,6 +445,7 @@ Fill `[Diagram 1]`, `[Diagram 2]`, `[Diagram 3]` with Mermaid diagrams covering:
 | `docs/map-authoring.md` | Tiled layer conventions and export steps |
 | `docs/adr/`             | Architecture Decision Records            |
 
+
 ADRs: `adr/001-sfu-over-mesh.md`, `adr/002-phaser-over-pixi.md`, `adr/003-tiled-json-map.md`.
 
 ### 6.3 Demo Assets
@@ -395,13 +454,18 @@ ADRs: `adr/001-sfu-over-mesh.md`, `adr/002-phaser-over-pixi.md`, `adr/003-tiled-
 - Screenshot of Metabot in world chat
 - Architecture diagram in README hero section
 
+
+
 ### 6.4 LICENSE
 
 Add MIT or Apache 2.0 — recruiters often skip repos without one.
 
 ---
 
+
+
 ## Explicitly Out of Scope
+
 
 | Item                             | Reason                                |
 | -------------------------------- | ------------------------------------- |
@@ -412,7 +476,10 @@ Add MIT or Apache 2.0 — recruiters often skip repos without one.
 | Metabot RAG pipeline changes     | Already functional via AWS Lambda     |
 | Vector DB / embedding upgrade    | Not needed                            |
 
+
 ---
+
+
 
 ## Recommended Execution Order
 
@@ -438,12 +505,16 @@ gantt
     Docs + ADRs + demo assets   :p6a, after p2a, 8d
 ```
 
+
+
 **Parallelizable work:**
 
 - Phase 4 (Phaser + Tiled) can start now — Phase 1/2 are done; independent of SFU
 - Phase 3 (SFU) can run parallel to Phase 4
 
 ---
+
+
 
 ## What NOT to Change
 
@@ -460,6 +531,8 @@ Keep these — they're already good choices:
 - **Global player broadcast** — correct behavior for single shared map
 
 ---
+
+
 
 ## Portfolio Narrative (What You'll Be Able to Say)
 

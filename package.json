@@ -16,7 +16,9 @@
     "build:web": "turbo run build --filter=./apps/web",
     "build:api": "turbo run build --filter=./apps/api",
     "start:web": "turbo run start --filter=./apps/web",
-    "start:api": "turbo run start --filter=./apps/api"
+    "start:api": "turbo run start --filter=./apps/api",
+    "docker:up:local": "docker compose -f local-compose.yml up --build",
+    "docker:down:local": "docker compose -f local-compose.yml down"
   },
   "devDependencies": {
     "turbo": "^2.10.11"
